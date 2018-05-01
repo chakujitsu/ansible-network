@@ -1,0 +1,102 @@
+---
+# Enforce syslog baseline configuration for Cisco IOS devices
+# Future Maturation - source interface -
+
+- name: Gather Syslog Servers
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i logging host
+  register: syslog_server_output
+
+#- debug: msg="{{ syslog_server_output }}"
+
+- name: Extract Syslog Server IP addresses From Output
+  set_fact: syslog_servers="{{ syslog_server_output.stdout[0] | regex_findall('logging host (\S+)') }}"
+  when: syslog_server_output != none
+
+#- debug: msg="{{ syslog_servers }}"
+
+- name: Remove invalid Syslog Servers
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_logging:
+    dest: host
+    name: "{{ item }}"
+    state: absent
+  with_items: "{{ syslog_servers }}"
+  when: (item not in solarwinds_ip) and (item not in syslogvip_ip)
+
+
+- name: Configure Kibana Syslog Servers
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_logging:
+    dest: host
+    name: "{{ syslogvip_ip }}"
+    state: present
+  when: syslogvip_ip not in syslog_servers
+
+- name: Configure Solarwinds Syslog Servers
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_logging:
+    dest: host
+    name: "{{ solarwinds_ip }}"
+    state: present
+  when: solarwinds_ip not in syslog_servers
+
+- name: Configure Buffer Logging Size
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_logging:
+    dest: buffered
+    level: informational
+    size: 16384
+
+- name: Configure Console Logging
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_logging:
+    dest: console
+    level: informational
+
+- name: Configure Terminal Monitor Logging
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_logging:
+    dest: monitor
+    level: informational
+
+- name: Extract Source Interface
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i logging source-interface
+  register: source_interface_output
+
+#- debug: msg="{{ source_interface_output }}"
+
+- name: Validate Source Interface
+  set_fact: source_interface="{{ source_interface_output.stdout[0] | regex_findall('(\d+)') }}"
+  when: source_interface_output != none
+
+# - debug: msg={{ source_interface }}
+# - debug: msg={{ site_vlans['MGMT']['vlan_id'] }}
+
+- name: Configure Syslog Source Interface
+  async: 360
+  poll: 15
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "logging source-interface vlan {{ site_vlans['MGMT']['vlan_id'] }}"
+  when: (source_interface_output !=none) and (site_vlans['MGMT']['vlan_id'] not in source_interface)

@@ -1,0 +1,43 @@
+---
+#Remove all other banners
+- name: Remove all other banners
+  ios_config:
+    lines:
+      - "no banner prompt-timeout"
+      - "no banner exec"
+      - "no aaa authentication banner"
+      - "no aaa authentication fail-message"
+  changed_when: false
+  ignore_errors: True
+#Configure Login Banner
+- name: Configuring Login Banner
+  ios_banner:
+    banner: login
+    text: |
+      =============================================================================
+      This is an official computer system and is the property of the
+      owner. It is for authorized users only. Unauthorized users are
+      prohibited. Users (authorized or unauthorized) have no explicit or
+      implicit expectation of privacy. Any or all uses of this system may be
+      subject to one or more of the following actions: interception,
+      monitoring, recording, auditing, inspection and disclosing to security
+      personnel and law enforcement personnel, as well as authorized officials
+      of other agencies, both domestic and foreign. By using this system, the
+      user consents to these actions. Unauthorized or improper use of this
+      system may result in administrative disciplinary action and civil and
+      criminal penalties. By accessing this system you indicate your awareness
+      of and consent to these terms and conditions of use. Discontinue access
+      immediately if you do not agree to the conditions stated in this notice.
+      =============================================================================
+    state: present
+  changed_when: false
+#Configure Banner MOTD
+- name: Configure MOTD Banner
+  ios_banner:
+    banner: motd
+    text: |
+      =============================================================================
+      This device is managed by Ansible! Think before you make manual changes!
+      =============================================================================
+    state: present
+  ignore_errors: True

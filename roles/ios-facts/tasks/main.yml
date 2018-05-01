@@ -1,0 +1,14 @@
+---
+# Collect all facts from the network device
+- ios_facts:
+    gather_subset: interfaces
+
+  register: facts
+
+#- debug: msg="{{ facts }}"
+- debug: msg={{ ansible_net_model }}
+#- debug: msg={{ ansible_net_image }}
+#- debug: msg={{ ansible_net_version }}
+#- debug: msg={{ ansible_net_serialnum }}
+#- debug: msg={{ ansible_net_hostname }}
+- debug: msg={{ ansible_net_interfaces }}

@@ -1,0 +1,29 @@
+---
+#Site Specific RADIUS servers
+yit_radius_servers:
+  - 10.8.23.31
+  - 10.11.21.31
+#Site name
+site_name: "RACK LAB"
+site_abbrv: "RLAB"
+#VLANS Configured at the site:
+site_vlans:
+  USERS:
+    vlan_id: "900"
+    voice_vlan: true
+  VOICE:
+    vlan_id: "901"
+  AV:
+    vlan_id: "902"
+  DMZ:
+    vlan_id: "903"
+  GUEST:
+    vlan_id: "904"
+  MGMT:
+    vlan_id: "905"
+  SECURITY:
+    vlan_id: "906"
+  SERVERS:
+    vlan_id: "907"
+  STORAGE:
+    vlan_id: "908"

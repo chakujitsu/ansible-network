@@ -1,0 +1,35 @@
+---
+- name: Extract NTP Server Configuration
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i ntp server
+  register: ntp_config
+
+#- debug: msg="{{ ntp_config }}"
+
+- name: Assign NTP Server to Variable
+  set_fact: _servers="{{ ntp_config.stdout[0] | regex_findall('ntp server (\S+)') }}"
+  when: ntp_config != none
+
+#- debug: msg="{{ _servers }}"
+
+- name: Remove Invalid NTP Servers
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "no ntp server {{ item }}"
+  with_items: "{{ _servers }}"
+  when: (item not in ntp_servers) and (ntp_config != none)
+
+- name: Configure NTP Server
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "ntp server {{ item }}"
+  with_items: "{{ ntp_servers }}"
+
+- name: Set Timezone
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "clock timezone MST -7"

@@ -1,0 +1,21 @@
+---
+- name: Manage Baseline Parameters
+  hosts:
+    - lab
+  connection: network_cli
+  remote_user: admin
+  #  Secrets are retrieved under local scope, which is not globally available
+  #  You must pass the localhost variable to the play for it to be usable
+  vars:
+    ansible_ssh_pass: "password"
+    ansible_network_os: ios
+  roles:
+    - ios-system
+    - ios-aaa-config
+    - ios-ntp
+    - ios-snmp
+    - ios-syslog
+    - ios-banners
+    - ios-copy-run-start
+
+...

@@ -1,0 +1,29 @@
+---
+#Site Specific RADIUS servers
+yit_radius_servers:
+  - 10.8.23.31
+  - 10.11.21.31
+#Site name
+site_name: "HOME LAB"
+site_abbrv: "HOME"
+#VLANS Configured at the site:
+site_vlans:
+  USERS:
+    vlan_id: "800"
+    voice_vlan: true
+  VOICE:
+    vlan_id: "814"
+  AV:
+    vlan_id: "831"
+  DMZ:
+    vlan_id: "850"
+  GUEST:
+    vlan_id: "810"
+  MGMT:
+    vlan_id: "820"
+  SECURITY:
+    vlan_id: "833"
+  SERVERS:
+    vlan_id: "822"
+  STORAGE:
+    vlan_id: "827"

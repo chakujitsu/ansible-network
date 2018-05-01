@@ -1,0 +1,57 @@
+---
+# General IOS Tasks
+- name: Configure hostname, domain, dns servers and source lookup interface
+  ignore_errors: True
+  ios_system:
+    hostname: "{{ hostname }}"
+    domain_name: "{{ domain_name }}"
+    domain_search:
+      - corp.lab.com
+      - lab.internal
+      - lab.com
+    lookup_enabled: yes
+    lookup_source: Vlan{{ site_vlans['MGMT']['vlan_id'] }}
+    name_servers:
+      - "{{ primary_dns }}"
+      - "{{ secondary_dns }}"
+# Disabled until version syntax is built in
+#- name: Configure TFTP Block Size
+#  ios_config:
+#    lines:
+#      - "ip tftp blocksize 8192"
+
+- name: Enable CDP and LLDP
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "cdp run"
+      - "lldp run"
+
+- name: Disable HTTP server
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "no ip http server"
+      - "no ip http secure-server"
+
+- name: Set PVST Defaults
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "spanning-tree mode rapid-pvst"
+      - "spanning-tree loopguard default"
+      - "spanning-tree extend system-id"
+
+- name: Set SSH Defaults
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "ip ssh version 2"
+      - "ip tcp synwait-time 10"
+      - "ip ssh time-out 30"
+
+- name: Encrypt Clear Text Passwords
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "service password-encryption"

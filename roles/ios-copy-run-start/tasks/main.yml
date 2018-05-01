@@ -1,0 +1,7 @@
+---
+# Save running config to startup
+- name: Save running config to startup
+  ignore_errors: True
+  ios_command:
+    commands:
+      - "wr mem"

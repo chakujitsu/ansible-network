@@ -1,0 +1,60 @@
+---
+# tasks file for ios-aaa-config
+
+- name: Set Empty Variable
+  set_fact: radius_servers=""
+
+- name: Extract Radius Servers
+  ignore_errors: True
+  ios_command:
+    commands: "show run | i radius-server host"
+  register: radius_server_output
+
+#- debug: msg="{{ radius_server_output }}"
+
+- name: Extract Radius Server IP addresses From Output
+  set_fact: radius_servers="{{ radius_server_output.stdout[0] | regex_findall('radius-server host (\S+)') }}"
+  when: radius_server_output.stdout[0] != ""
+
+#- debug: msg="{{ radius_servers }}"
+
+- name: Remove Invalid Radius Servers
+  ignore_errors: True
+  ios_config:
+    lines:
+      - no radius-server host {{ item }}
+  with_items: "{{ radius_servers }}"
+  when: (radius_server_output.stdout[0] != "") and (item not in yit_radius_servers)
+
+- name: Enforce Radius Servers and Key
+  ignore_errors: True
+  ios_config:
+    lines:
+      - radius-server host {{ item }} timeout 5 key {{ radius_key }}
+  with_items: "{{ yit_radius_servers }}"
+
+- name: Configure AAA Authentication and Authorization Lists and Source Int
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "aaa new-model"
+      - "aaa authentication login default group radius local"
+      - "aaa authentication enable default group radius enable"
+      - "aaa authorization console"
+      - "aaa authorization exec default group radius local"
+      - "aaa authorization network default group radius local"
+      - "aaa session-id common"
+      - "ip radius source-interface Vlan{{ site_vlans['MGMT']['vlan_id'] }}"
+
+
+# Disabled until version checking completes - currently fails on 12.2
+#- name: Configure local emergency admin credentials
+#  ios_user:
+#    name: "{{ emergency_username }}"
+#    privilege: 15
+#    nopassword: False
+#    configured_password: "{{  emergency_password  }}"
+#    update_password: always
+#    purge: yes
+#    state: present
+

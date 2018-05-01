@@ -1,0 +1,11 @@
+---
+# tasks file for ios-dynamic-interfaces
+- name: Capture CDP Neighbors
+  ios_command:
+    lines:
+      show lldp neighbors detail
+  result: lldp-raw
+
+- name: Convert output to yaml
+  src: {{ lldp-raw | to_yaml }}
+  result: lldp-yaml

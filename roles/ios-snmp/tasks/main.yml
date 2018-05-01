@@ -1,0 +1,138 @@
+---
+# Enforce basline configuration for Cisco IOS devices
+
+### START SNMP COMMUNITY
+  ### START SNMPV1
+- name: Extract SNMPv1 configuration
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i snmp-server community
+
+  register: snmp1_config
+
+#- debug: msg="{{ snmp1_config }}"
+
+- name: Assign SNMPv1 output to Variable
+  set_fact: snmp1_servers="{{ snmp1_config.stdout[0] | regex_findall('(snmp-server community .* R[O|W])') }}"
+  when: snmp1_config != none
+
+#- debug: msg="{{ snmp1_servers }}"
+
+- name: Remove invalid SNMPv1 community strings
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "no {{ item }}"
+  with_items: "{{ snmp1_servers }}"
+  when: snmp1_config != none
+
+#- debug: msg="{{ snmp1_servers }}"
+
+
+  ### END SNMPV1
+
+  ### START SNMPV2
+- name: Extract SNMPv2 configuration
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i snmp-server host
+
+  register: snmp2_config
+
+#- debug: msg="{{ snmp2_config }}"
+
+- name: Assign SNMPv2 output to Variable
+  set_fact: snmp2_servers="{{ snmp2_config.stdout_lines }}"
+  when: snmp2_config != none
+
+#- debug: msg="{{ snmp2_servers }}"
+
+- name: Remove invalid SNMPv2 community strings
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "no {{ item }}"
+  with_items: "{{ snmp2_servers }}"
+  when: item not in snmpv2_config
+
+- name: Verify SNMPv2 configuration
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i snmp-server host
+  register: snmp2_verify
+
+#- debug: msg="{{ snmp2_verify }}"
+
+- name: Configure Solarwinds SNMPv2 string
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "{{ snmpv2_config }}"
+  when: snmpv2_config not in snmp2_verify
+
+- name: Configure SNMP1 string
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "{{ snmpv1_community }}"
+
+### END SNMP COMMUNITY
+
+
+### START SNMP TRAPS
+
+- name: Configure SNMP Traps enable
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "snmp-server enable traps"
+  changed_when: false
+
+### END SNMP TRAPS
+
+### START SNMP LOCATION
+
+- name: Extract SNMP Location Configuration
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i snmp-server location
+  register: snmploc_config
+
+- name: Configure SNMP Location
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "snmp-server location {{ site_name }}"
+  when: site_name not in snmploc_config
+
+### END SNMP LOCATION
+
+### START SNMP SOURCE INTERFACE
+
+- name: Extract SNMP Trap Source
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i snmp-server trap-source
+  register: snmp_trap_source_config
+
+- name: Configure SNMP Trap Source
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "snmp-server trap-source Vlan{{ site_vlans['MGMT']['vlan_id'] }}"
+  when: site_vlans['MGMT']['vlan_id'] not in snmp_trap_source_config
+
+- name: Extract SNMP Inform Source
+  ignore_errors: True
+  ios_command:
+    commands: show running-config | i snmp-server source-interface informs
+  register: snmp_informs_source_config
+
+- name: Configure SNMP Inform Source
+  ignore_errors: True
+  ios_config:
+    lines:
+      - "snmp-server source-interface informs Vlan{{ site_vlans['MGMT']['vlan_id'] }}"
+  when: site_vlans['MGMT']['vlan_id'] not in snmp_informs_source_config
+
+### END SNMP SOURCE INTERFACE

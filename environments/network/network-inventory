@@ -1,0 +1,10 @@
+---
+# Network Inventory
+network-all:
+  children:
+    lab:
+      hosts:
+        test-3750-04-02.lab.internal:
+    lab2:
+      hosts:
+        madeupswitch.lab.internal:

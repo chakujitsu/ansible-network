@@ -1,0 +1,134 @@
+---
+#test-3750-04-02.ydc.yamww.internal variables
+hostname: "test-3750-04-02.lab"
+
+#Management SVI ip address
+mgmt_vlan_ip: "10.8.21.106"
+mgmt_vlan_mask: "255.255.254.0"
+
+
+############BEGIN USER PORTS############
+
+#Assign Access Ports to VLAN
+## NOTE: All 'ports' are treated as a list. Also, unique names must be assigned for the same VLAN.
+## i.e. two "USERS" groups need to be named uniquely
+
+############ BEGIN EXAMPLE
+#all_ports:
+#  USERS:
+#    name: GigabitEthernet
+#    module: 1
+#    card: 0
+#    ports:
+#      - 1
+#      - 11-15
+#    description: "{{ user_access_port_description }}"
+#    admin_up: true
+#  USERS1:
+#    name: GigabitEthernet
+#    module: 1
+#    card: 0
+#    ports:
+#      - 16
+#    description: "{{ user_access_port_description }}"
+#    admin_up: false
+#
+############ END EXAMPLE
+
+all_ports:
+  USERS:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 1
+      - 11-15
+    description: "{{ user_access_port_description }}"
+    admin_up: true
+  VOICE:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 2
+    description: "{{ voice_access_port_description }} - TO VOICE-SWITCH"
+    admin_up: true
+  SECURITY:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 3
+      - 8
+    description: "{{ security_access_port_description }}"
+    admin_up: true
+  AV:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 4
+    description: "{{ av_access_port_description }}"
+    admin_up: true
+  DMZ:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 5
+    description: "{{ dmz_access_port_description }}"
+    admin_up: true
+  GUEST:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 6
+    description: "{{ guest_access_port_description }}"
+    admin_up: true
+  MGMT:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 7
+    description: "{{ mgmt_access_port_description }}"
+    admin_up: true
+  SERVERS:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 9
+    description: "{{ security_access_port_description }}"
+    admin_up: true
+  STORAGE:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 10
+    description: "{{ storage_access_port_description }}"
+    admin_up: false
+
+
+#############END USER PORTS############
+
+
+
+
+############BEGIN TRUNK PORTS############
+
+#Port Channel
+port_channels:
+  1:
+    type: uplink
+    interfaces:
+      - GigabitEthernet1/1/1
+      - GigabitEthernet1/1/2
+
+uplinks:
+  - interface: Port-channel1
+
+
+############END TRUNK PORTS############

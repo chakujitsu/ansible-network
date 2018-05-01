@@ -1,0 +1,43 @@
+---
+#DNS Servers
+primary_dns: "1.1.1.1"
+secondary_dns: "8.8.8.8"
+#Domain Name
+domain_name: "lab.local"
+#Syslog IP addresses
+syslogvip_ip: "10.8.23.240"
+solarwinds_ip: "10.9.21.24"
+#RADIUS Servers
+yit_radius_servers:
+  - 10.8.23.31
+  - 10.11.21.31
+#RADIUS Key
+radius_key: "RADIUS-KEY"
+#Site Name for SNMP Location
+site_name: "LAB"
+site_abbrv: "LAB-DC"
+#NTP Servers
+ntp_servers:
+   - 10.9.21.161
+   - 10.11.21.161
+#Emergency Credentials for when AAA is not reachable
+emergency_username: "admin"
+emergency_password: "$Password"
+
+#VLAN naming Credentials
+av_vlan_name: "{{ site_abbrv }} AV"
+dmz_vlan_name: "{{ site_abbrv }} DMZ"
+guest_vlan_name: "{{ site_abbrv }} GUEST"
+mgmt_vlan_name: "{{ site_abbrv }} MANAGEMENT"
+security_vlan_name: "{{ site_abbrv }} SECURITY"
+servers_vlan_name: "{{ site_abbrv }} SERVERS"
+storage_vlan_name: "{{ site_abbrv }} STORAGE"
+user_vlan_name: "{{ site_abbrv }} USERS"
+voice_vlan_name: "{{ site_abbrv }} VOIP"
+
+#SVI Interface Config
+mgmt_svi:
+- name: "{{ mgmt_vlan }}"
+  ip: "{{ mgmt_vlan_ip }}"
+  mask: "{{ mgmt_vlan_mask }}"
+  description: "{{ mgmt_vlan_name }}"

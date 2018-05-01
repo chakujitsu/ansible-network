@@ -1,0 +1,33 @@
+---
+# tasks file for ios-interfaces
+
+# Enforce Interface Admin Status Up/Down
+
+#- name: debug
+#  debug:
+#    msg:
+#      - "{{ item }}"
+#      - "{{ item.key }}"
+#      - "{{ item.key|string }}"
+#      - "{{ item.value.vlan_id }}"
+#
+#  loop: "{{ lookup('dict', site_vlans) }}"
+
+- name: Create/Enforce Site VLAN
+  ignore_errors: False
+  ios_vlan:
+    vlan_id: "{{ item.value.vlan_id }}"
+    name: "{{ item.key }}"
+    state: present
+  with_dict: "{{ site_vlans }}"
+
+- name: Build VLAN access ports
+  template:
+    src: access_ports_host_cli.j2
+    dest: "{{ configs_dir }}/{{ inventory_hostname }}-access_ports_host.cfg"
+
+- name: Push User VLAN port config
+  ignore_errors: False
+  ios_config:
+    save_when: modified
+    src: "{{ configs_dir }}/{{ inventory_hostname }}-access_ports_host.cfg"

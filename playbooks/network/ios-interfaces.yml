@@ -1,0 +1,12 @@
+---
+- name: Configure L2 Access Interfaces
+  hosts:
+    - lab
+  connection: network_cli
+  remote_user: admin
+  vars:
+    ansible_ssh_pass: "password"
+    ansible_network_os: ios
+  roles:
+#    - ios-dynamic-interface-description
+    - ios-interfaces
