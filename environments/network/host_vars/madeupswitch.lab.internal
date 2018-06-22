@@ -1,5 +1,4 @@
 ---
-#test-3750-04-02.ydc.yamww.internal variables
 hostname: "madeupswitch.lab"
 
 #Management SVI ip address
