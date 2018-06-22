@@ -1,11 +1,10 @@
 ---
-#test-3750-04-02.ydc.yamww.internal variables
 hostname: "test-3750-04-02.lab"
 
 #Management SVI ip address
 mgmt_vlan_ip: "10.8.21.106"
 mgmt_vlan_mask: "255.255.254.0"
-
+model: "3750-x"
 
 ############BEGIN USER PORTS############
 
@@ -113,22 +112,3 @@ all_ports:
 
 
 #############END USER PORTS############
-
-
-
-
-############BEGIN TRUNK PORTS############
-
-#Port Channel
-port_channels:
-  1:
-    type: uplink
-    interfaces:
-      - GigabitEthernet1/1/1
-      - GigabitEthernet1/1/2
-
-uplinks:
-  - interface: Port-channel1
-
-
-############END TRUNK PORTS############

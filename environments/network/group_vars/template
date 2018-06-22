@@ -1,0 +1,25 @@
+---
+site_name: "Site-Name"
+site_abbrv: "SN"
+primary_dns: "1.1.1.1"
+secondary_dns: "2.2.2.2"
+mgmt_default_gateway: "10.255.255.254"
+yit_radius_servers:
+  - 10.8.8.8
+  - 10.9.9.9
+site_vlans:
+  VLAN1:
+    vlan_id: "1"
+    voice_vlan: true
+    dhcp_snoop: true
+  VLAN2:
+    vlan_id: "2"
+    dhcp_snoop: true
+  VLAN3:
+    vlan_id: "3"
+    dhcp_snoop: true
+  VLAN4:
+    vlan_id: "4"
+  VLAN5:
+    vlan_id: "5"
+...

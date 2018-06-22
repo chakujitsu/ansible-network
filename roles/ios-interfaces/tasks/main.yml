@@ -10,8 +10,18 @@
 #      - "{{ item.key }}"
 #      - "{{ item.key|string }}"
 #      - "{{ item.value.vlan_id }}"
-#
 #  loop: "{{ lookup('dict', site_vlans) }}"
+
+#- name: debug
+#  debug:
+#    msg:
+#      - "{{ item }}"
+#      - "{{ item.key }}"
+#      - "{{ item.key|string }}"
+#      - "{{ item.value.interfaces }}"
+#      - "{{ item.value.type }}"
+#
+#  with_dict: "{{ port_channels }}"
 
 - name: Create/Enforce Site VLAN
   ignore_errors: False
@@ -21,13 +31,22 @@
     state: present
   with_dict: "{{ site_vlans }}"
 
-- name: Build VLAN access ports
+- name: Build Interface Config
   template:
-    src: access_ports_host_cli.j2
-    dest: "{{ configs_dir }}/{{ inventory_hostname }}-access_ports_host.cfg"
+    src: ios-interfaces.j2
+    dest: "{{ configs_dir }}/{{ inventory_hostname }}-interfaces.cfg"
 
-- name: Push User VLAN port config
+- name: Push Interface Config
   ignore_errors: False
   ios_config:
     save_when: modified
-    src: "{{ configs_dir }}/{{ inventory_hostname }}-access_ports_host.cfg"
+    src: "{{ configs_dir }}/{{ inventory_hostname }}-interfaces.cfg"
+
+
+# - name: Configure Port-Channels
+#   ios_linkagg:
+#     group: "{{ item.key|string }}"
+#     members: "{{ item.value.interfaces|string }}"
+#     mode: active
+#   with_dict: "{{ port_channels }}"
+#   when: port_channels is defined

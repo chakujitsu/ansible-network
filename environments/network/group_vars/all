@@ -1,0 +1,16 @@
+---
+#Set description for access interfaces
+user_access_port_description: "USER PORT"
+voice_access_port_description: "VOICE PORT"
+security_access_port_description: "SECURITY PORT"
+av_access_port_description: "AV PORT"
+dmz_access_port_description: "DMZ PORT"
+guest_access_port_description: "GUEST PORT"
+mgmt_access_port_description: "MGMT PORT"
+servers_access_port_description: "SERVERS PORT"
+storage_access_port_description: "STORAGE PORT"
+
+
+#Set config path for interface template configurations
+#configs_dir: "/etc/ansible/configs"
+configs_dir: "/Users/tnielsen/dev/ansible-network/configs"

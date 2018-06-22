@@ -1,0 +1,7 @@
+---
+# tasks file for network-baseline-config
+- name: Build 2960x Configuration
+  template:
+    src: 2960-x.j2
+    dest: "{{ configs_dir }}/{{ inventory_hostname }}-baseline.cfg"
+  when: model == "2960-x" or model == "3750-x"

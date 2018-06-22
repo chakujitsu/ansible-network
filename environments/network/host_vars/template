@@ -1,0 +1,54 @@
+---
+#devicename.site variables
+hostname: "devicename.site"
+#Management SVI ip address
+mgmt_vlan_ip: "10.1.1.1"
+mgmt_vlan_mask: "255.255.255.0"
+model: "model"
+
+
+#############BEGIN ACCESS PORTS############
+all_ports:
+  VLAN1:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 1-44
+    description: "{{ user_access_port_description }}"
+    admin_up: true
+
+#############END USER PORTS############
+############BEGIN TRUNK PORTS###########
+
+all_trunks:
+  TRUNK-IDENTIFIER:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 45-46
+    description: "description"
+    snooping_trust: true
+    uplink: true
+    admin_up: true
+    vlans:
+      - VLAN1
+      - VLAN2
+
+############END TRUNK PORTS#############
+###########BEGIN PORT-CHANNELS############
+
+port_channels:
+  ID:
+    interfaces:
+      - Interface 1
+      - Interface 2
+    description: "MEMBER OF PO X - CONNECTING PO"
+    snooping_trust: true
+    uplink: true
+    vlans:
+      - VLAN1
+      - VLAN2
+
+##########END PORT-CHANNELS############

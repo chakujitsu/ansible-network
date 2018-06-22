@@ -1,16 +1,18 @@
 ---
 #Site Specific RADIUS servers
 yit_radius_servers:
-  - 10.8.23.31
-  - 10.11.21.31
+  - 1.1.1.1
+  - 2.2.2.2
 #Site name
 site_name: "HOME LAB"
 site_abbrv: "HOME"
+mgmt_default_gateway: "10.255.255.254"
 #VLANS Configured at the site:
 site_vlans:
   USERS:
     vlan_id: "800"
     voice_vlan: true
+    dhcp_snoop: true
   VOICE:
     vlan_id: "814"
   AV:

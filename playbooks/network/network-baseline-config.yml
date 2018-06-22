@@ -1,0 +1,8 @@
+---
+- name: Generate Baseline
+  hosts:
+    - lab
+    - lab2
+  connection: local
+  roles:
+    - network-baseline-config

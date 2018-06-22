@@ -1,9 +1,0 @@
-#jinja2: lstrip_blocks: "true"
-{% for port in security_ports %}
-interface range {{ port['name'] }}{{ port['module'] }}/{{ port['card'] }}/{{ port['ports'] }}
-  description {{ security_access_port_description }}
-  switchport host
-  switchport mode access
-  switchport access vlan {{ security_vlan }}
-  spanning-tree bpduguard enable
-{% endfor %}

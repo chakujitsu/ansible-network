@@ -1,0 +1,122 @@
+#jinja2: lstrip_blocks: "true"
+! Loop through Access Interfaces declared in host_var
+
+{% for port_groups in all_ports %}
+
+{% for int in all_ports[port_groups]['ports'] %}
+interface range {{ all_ports[port_groups]['name'] }}{% if all_ports[port_groups]['module'] is defined %}{{ all_ports[port_groups]['module'] }}/{% endif %}{{ all_ports[port_groups]['card'] }}/{{ int|string }}
+ description {{ all_ports[port_groups]['description'] }}
+ switchport mode access
+ spanning-tree portfast
+{% if model is defined %}
+{% if model == "3750-x" %}
+ no switchport trunk encapsulation dot1q
+{% endif %}
+{% endif %}
+ no switchport trunk allowed vlan
+ no switchport trunk native vlan
+{% if all_ports[port_groups]['bpdu_guard'] is defined %}
+{% if all_ports[port_groups]['bpdu_guard'] == true %}
+ spanning-tree bpduguard enable
+{% endif %}
+{% if all_ports[port_groups]['bpdu_guard'] == false %}
+ no spanning-tree bpduguard enable
+{% endif %}
+{% endif %}
+ switchport nonegotiate
+{% for vlan in site_vlans %}
+{% if port_groups == vlan %}
+ switchport access vlan {{ site_vlans[vlan]['vlan_id'] }}
+{% if site_vlans[vlan]['voice_vlan'] is defined %}{% if site_vlans[vlan]['voice_vlan'] == true %}
+ switchport voice vlan {{ site_vlans['VOICE']['vlan_id'] }}
+{% endif %}{% endif %}
+{% endif %}
+{% endfor %}
+{% if all_ports[port_groups]['admin_up'] == true %}
+ no shut
+{% endif %}
+{% if all_ports[port_groups]['admin_up'] == false %}
+ shut
+{% endif %}
+{% endfor %}
+{% endfor %}
+
+! Loop through all_trunks dictionary all_trunks in host_var
+
+{% if all_trunks is defined %}
+{% for trunk in all_trunks %}
+{% for int in all_trunks[trunk]['ports'] %}
+interface range {{ all_trunks[trunk]['name'] }}{% if all_trunks[trunk]['module'] is defined %}{{ all_trunks[trunk]['module'] }}/{% endif %}{{ all_trunks[trunk]['card'] }}/{{ int|string }}
+ description {{ all_trunks[trunk]['description'] }}
+ {% if model is defined %}
+ {% if model == "3750-x" %}
+ switchport trunk encapsulation dot1q
+ {% endif %}
+ {% endif %}
+ switchport mode trunk
+ no switchport access vlan
+ no spanning-tree portfast
+ no switchport voice vlan
+ {% if all_trunks[trunk]['bpdu_guard'] is defined %}
+ {% if all_trunks[trunk]['bpdu_guard'] == true %}
+ spanning-tree bpduguard enable
+ {% endif %}
+ {% endif %}
+ no spanning-tree bpduguard enable
+{% if all_trunks[trunk].native_vlan is defined %}
+{% for value in all_trunks[trunk].native_vlan %}
+{% for vlan in site_vlans %}{% if value == vlan %} switchport trunk native vlan {{ site_vlans[vlan]['vlan_id'] }}
+{% endif %}{% endfor %}{% endfor %}
+{% endif %}
+{% if all_trunks[trunk].snooping_trust is defined %}
+{% if all_trunks[trunk].snooping_trust == true %} ip dhcp snooping trust
+{% endif %}
+{% endif %}
+ switchport trunk allowed vlan {% for allowed_vlan in all_trunks[trunk].vlans %}{% for vlan in site_vlans %}{% if allowed_vlan == vlan %}{{ site_vlans[vlan].vlan_id }}{% endif %}{% endfor %}{% if not loop.last %},{% endif %}{% endfor %}
+
+{% if all_trunks[trunk]['admin_up'] == true %}
+ no shut
+{% endif %}
+
+{% if all_trunks[trunk]['admin_up'] == false %}
+ shut
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+
+
+! Loop through port_channels dictionary in host_var
+
+{% if port_channels is defined %}
+{% for po in port_channels %}
+{% for int in port_channels[po]['interfaces'] %}
+ interface {{ int }}
+ description PORT-CHANNEL {{ po }} MEMBER - {{ port_channels[po]['description'] }}
+ switchport mode trunk
+ no switchport access vlan
+{% if port_channels[po].snooping_trust is defined %}
+{% if port_channels[po].snooping_trust == true %} ip dhcp snooping trust
+{% endif %}
+{% endif %}
+ switchport trunk allowed vlan {% for allowed_vlan in port_channels[po].vlans %}{% for vlan in site_vlans %}{% if allowed_vlan == vlan %}{{ site_vlans[vlan].vlan_id }}{% endif %}{% endfor %}{% if not loop.last %},{% endif %}{% endfor %}
+
+ channel-group {{ po }} mode active
+ no shut
+
+{% endfor %}
+
+ int port-channel {{ po }}
+ description {{ port_channels[po]['description'] }}
+ switchport mode trunk
+ switchport trunk allowed vlan {% for allowed_vlan in port_channels[po].vlans %}{% for vlan in site_vlans %}{% if allowed_vlan == vlan %}{{ site_vlans[vlan].vlan_id }}{% endif %}{% endfor %}{% if not loop.last %},{% endif %}{% endfor %}
+
+{% if port_channels[po].snooping_trust is defined %}
+{% if port_channels[po].snooping_trust == true %} ip dhcp snooping trust
+{% endif %}
+{% endif %}
+ no shut
+
+{% endfor %}
+{% endif %}

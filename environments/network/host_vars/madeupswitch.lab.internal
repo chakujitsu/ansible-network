@@ -6,34 +6,14 @@ hostname: "madeupswitch.lab"
 mgmt_vlan_ip: "10.9.21.106"
 mgmt_vlan_mask: "255.255.254.0"
 
+#switch model
+model: "3750-x"
 
-############BEGIN USER PORTS############
 
-#Assign Access Ports to VLAN
-## NOTE: All 'ports' are treated as a list. Also, unique names must be assigned for the same VLAN.
-## i.e. two "USERS" groups need to be named uniquely
 
-############ BEGIN EXAMPLE
-#all_ports:
-#  USERS:
-#    name: GigabitEthernet
-#    module: 1
-#    card: 0
-#    ports:
-#      - 1
-#      - 11-15
-#    description: "{{ user_access_port_description }}"
-#    admin_up: true
-#  USERS1:
-#    name: GigabitEthernet
-#    module: 1
-#    card: 0
-#    ports:
-#      - 16
-#    description: "{{ user_access_port_description }}"
-#    admin_up: false
-#
-############ END EXAMPLE
+
+#############BEGIN USER PORTS############
+
 
 all_ports:
   USERS:
@@ -41,28 +21,43 @@ all_ports:
     module: 1
     card: 0
     ports:
-      - 1 - 24
-    description: " THIS IS A CUSTOM DESCRIPTION "
+      - 1-22
+    description: "USER PORT"
     admin_up: true
+    bpdu_guard: true
 
 
 #############END USER PORTS############
 
 
+############BEGIN TRUNK PORTS###########
 
-
-############BEGIN TRUNK PORTS############
-
-#Port Channel
-port_channels:
-  1:
-    type: uplink
-    interfaces:
-      - GigabitEthernet1/1/1
-      - GigabitEthernet1/1/2
-
-uplinks:
-  - interface: Port-channel1
-
-
-############END TRUNK PORTS############
+all_trunks:
+  NETWORK-UPLINK:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 24
+    description: "TEST-TRUNK-AGAIN"
+    snooping_trust: true
+    uplink: true
+    admin_up: true
+    bpdu_guard: false
+    vlans:
+      - MGMT
+  TEST-PRETEND-AP:
+    name: GigabitEthernet
+    module: 1
+    card: 0
+    ports:
+      - 23
+    description: "AP"
+    uplink: true
+    native_vlan:
+      - MGMT
+    admin_up: true
+    vlans:
+      - MGMT
+      - USERS
+############END TRUNK PORTS#############
