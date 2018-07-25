@@ -1,7 +1,39 @@
 ---
-# tasks file for network-baseline-config
+ # Begin Network Switch Tasks
 - name: Build 2960x Configuration
-  template:
+  win_template:
     src: 2960-x.j2
     dest: "{{ configs_dir }}/{{ inventory_hostname }}-baseline.cfg"
-  when: model == "2960-x" or model == "3750-x"
+  when: model is defined and model == "2960-x"
+
+- name: Build 3750x Configuration
+  win_template:
+    src: 2960-x.j2
+    dest: "{{ configs_dir }}/{{ inventory_hostname }}-baseline.cfg"
+  when: model is defined and model == "3750-x"
+
+- name: Build ICX Configuration
+  win_template:
+    src: icx.j2
+    dest: "{{ configs_dir }}/{{ inventory_hostname }}-baseline.cfg"
+  when: model is defined and model == "icx"
+
+- name: Create ZTP Config for Switches
+  win_template:
+    src: icx.j2
+    dest: "/etc/ansible/{{ ztp_prefix }}-Switch{{ ztp_mac }}.cfg"
+  when: not mgmt_layer3 and ztp_mac is defined and ztp_prefix is defined
+
+- name: Create ZTP Config for Routers
+  win_template:
+    src: icx.j2
+    dest: "/etc/ansible/{{ ztp_prefix }}-Router{{ ztp_mac }}.cfg"
+  when: mgmt_layer3 and ztp_mac is defined and ztp_prefix is defined
+
+# Begin Fortigate Tasks
+
+- name: Build Fortigate Configuration
+  win_template:
+    src: fgt140E-6.0.1.j2
+    dest: "{{ configs_dir }}/{{ inventory_hostname }}-baseline.conf"
+  when: model is defined and model == "FGT-140E"

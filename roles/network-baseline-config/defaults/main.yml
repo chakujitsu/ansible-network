@@ -1,2 +1,4 @@
 ---
 # defaults file for network-baseline-config
+mgmt_layer3: false
+...

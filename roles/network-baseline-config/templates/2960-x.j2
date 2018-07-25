@@ -19,9 +19,9 @@ logging buffered informational
 logging console informational
 logging monitor informational
 logging origin-id hostname
-enable secret password
+enable secret 5 $1$kvzD$MfTupcvIkv4OwrGGdwZol0
 !
-username admin privilege 15 secret password
+username admin privilege 15 secret 5 HASHED-PASSWORD
 aaa new-model
 !
 !
@@ -51,7 +51,7 @@ no ip gratuitous-arps
 ip icmp rate-limit unreachable 1000
 !
 !
-ip domain-name domain.com
+ip domain-name yamww.internal
 ip name-server {{ primary_dns }}
 ip name-server {{ secondary_dns }}
 
@@ -281,11 +281,11 @@ logging host {{ solarwinds_ip }}
 
 !
 
-snmp-server community SNMPSTRING RO
+snmp-server community SNMPKEY RO
 snmp-server enable traps
 
 {% for server in yit_radius_servers %}
-radius-server host {{ server }} timeout 5 key key
+radius-server host {{ server }} timeout 5 key RADIUSPASSWORD
 {% endfor %}
 !
 !
@@ -293,7 +293,7 @@ radius-server host {{ server }} timeout 5 key key
 banner login ^CC
 =============================================================================
 This is an official computer system and is the property of the
-proprietor. It is for authorized users only. Unauthorized users are
+LAB. It is for authorized users only. Unauthorized users are
 prohibited. Users (authorized or unauthorized) have no explicit or
 implicit expectation of privacy. Any or all uses of this system may be
 subject to one or more of the following actions: interception,
@@ -318,17 +318,18 @@ banner prompt-timeout ^CC
 !
 line con 0
  exec-timeout 9 0
- password password
+ password 7 PASSWORD
  logging synchronous
 line vty 0 4
  login authentication default
  transport input ssh
  exec-timeout 9 0
- password password
+ password 7 PASSWORD
  logging synchronous level all
 line vty 5 15
  transport input none
  access-class MGMT_ACCESS in
- password password
+ password 7 PASSWORD
+
 !
 end

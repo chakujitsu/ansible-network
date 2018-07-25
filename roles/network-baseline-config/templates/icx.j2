@@ -1,0 +1,333 @@
+{# BEGIN GENERAL SETTINGS #}
+ip dns domain-list {{ network_dns_domain }}
+ip dns server-address {{ primary_dns }} {{ secondary_dns }}
+!
+lldp run
+!
+ip ssh idle-time {{ ssh_timeout }}
+!
+jumbo
+!
+no telnet server
+no web-management http
+!
+!
+!
+!
+!
+!
+!
+banner motd ^C
+NOTICE TO USERS^C
+============================================================================^C
+This is an official computer system and is the property of the^C
+LAB. It is for authorized users only. Unauthorized users are^C
+prohibited. Users (authorized or unauthorized) have no explicit or^C
+implicit expectation of privacy. Any or all uses of this system may be^C
+subject to one or more of the following actions: interception,^C
+monitoring, recording, auditing, inspection and disclosing to security^C
+personnel and law enforcement personnel, as well as authorized officials^C
+of other agencies, both domestic and foreign. By using this system, the^C
+user consents to these actions. Unauthorized or improper use of this^C
+system may result in administrative disciplinary action and civil and^C
+criminal penalties. By accessing this system you indicate your awareness^C
+of and consent to these terms and conditions of use. Discontinue access^C
+immediately if you do not agree to the conditions stated in this notice.^C
+============================================================================^C
+^C
+!
+banner exec ^C
+Please see IT Security Policy for Terms of Use.^C
+^C
+!
+spanning-tree 802-1w
+!
+username admin password 8 HASHED-ADMIN-PW
+snmp-server community {{ snmp_community_ro }} ro
+snmp-server community {{ snmp_community_rw }} rw
+{% for server in snmp_hosts %}
+snmp-server host {{ server }} version v2c {{ snmp_community_ro }}
+{% endfor %}
+!
+!
+!
+snmp-server location tag:{{ site_name }}
+hostname {{ hostname }}
+!
+{% for server in yit_radius_servers %}
+radius-server host {{ server }}
+{% endfor %}
+radius-server key 2 RADIUSKEY
+radius-server retransmit 2
+radius-server timeout 10
+!
+errdisable recovery cause all
+errdisable recovery interval 120
+aaa authentication web-server default local
+aaa authentication login default radius local
+aaa authentication login privilege-mode
+enable super-user-password 8 SU-HASH
+!
+ip multicast passive
+!
+clock timezone us Arizona
+!
+ntp
+ disable serve
+ server {{ primary_dns }}
+ server {{ secondary_dns }}
+!
+exit
+!
+logging console
+logging host {{ syslogvip_ip }}
+logging host {{ solarwinds_ip }}
+!
+crypto key generate rsa modulus 2048
+!
+{# END GENERAL SETTINGS #}
+{# BEGIN LAG PORTS #}
+
+!Configure LAG Interfaces
+{% for po in port_channels %}
+{% for mod in port_channels[po]['module']|string if mod|int > 0 %}
+{% for i in port_channels[po]['ports'] %}
+interface {{ port_channels[po]['name'] }}{{ mod }}/{{ port_channels[po]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ port_channels[po]['card'] }}/{% elif not loop.last %}{{ x }}{% else %}{{ x }}{% endif %}{% endfor %}
+
+{% for vlan in site_vlans %}
+{% if po == vlan %}
+{% endif %}
+{% endfor %}
+port-name {{ port_channels[po]['description'] }}
+{% if port_channels[po]['bpdu_guard'] is defined %}
+{% if port_channels[po]['bpdu_guard'] == true %}
+stp-bpdu-guard
+{% else %}
+spanning-tree 802-1w admin-pt2pt-mac
+{% endif %}
+{% endif %}
+{% if port_channels[po]['bpdu_guard'] is not defined %}
+spanning-tree 802-1w admin-pt2pt-mac
+{% endif %}
+{% if port_channels[po]['admin_up'] == true %}
+no disable
+{% endif %}
+{% if port_channels[po]['admin_up'] == false %}
+disable
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+!Create LAGs
+{% for po in port_channels %}
+{% for mod in port_channels[po]['module']|string if mod|int > 0 %}
+lag {{ port_channels[po]['lag_name'] }} dynamic id {{ po }}
+{% for i in port_channels[po]['ports'] %}
+ports {{ port_channels[po]['name'] }}{{ mod }}/{{ port_channels[po]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ port_channels[po]['card'] }}/{% elif not loop.last %}{{ x }}{% else %}{{ x }}{% endif %}{% endfor %}
+
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+{# END LAG PORTS #}
+{# BEGIN LAG TAGGING #}
+
+{% for vlan in site_vlans %}
+!Tagging LAG for VLAN {{ vlan }}
+{% if port_channels is defined %}
+{% for po in port_channels %}
+{% for intvlan in port_channels[po]['vlans'] %}
+{% if vlan == intvlan %}
+vlan {{ site_vlans[vlan]['vlan_id'] }} name {{ site_abbrv }}-{{ vlan }} by port
+tagged lag {{ po }}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+{# END LAG TAGGING #}
+{# BEGIN ACCESS (UNTAGGED) PORT ASSIGNMENT #}
+
+{% for vlan in site_vlans %}
+{% if site_vlans[vlan]['voice_vlan'] is not defined %}
+{% for port_groups in all_ports %}{% if vlan == port_groups %}
+{% if all_ports[port_groups]['ports'] is defined %}
+!Untagging Access Ports on VLAN {{ vlan }}
+vlan {{ site_vlans[vlan]['vlan_id'] }} name {{ site_abbrv }}-{{ vlan }} by port
+multicast passive
+loop-detection
+{% endif %}
+{% for i in all_ports[port_groups]['ports'] %}
+{% for mod in all_ports[port_groups]['module']|string if mod|int > 0 %}
+untagged {{ all_ports[port_groups]['name'] }}{{ mod }}/{{ all_ports[port_groups]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ all_ports[port_groups]['card'] }}/{% elif not loop.last %}{{ x }}{% else %}{{ x }}{% endif %}{% endfor %}
+
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+{# END ACCESS (UNTAGGED) PORT ASSIGNMENT #}
+{# BEGIN DUAL MODE PORT TAGGING #}
+
+{% for vlan in site_vlans %}
+{% if site_vlans[vlan]['voice_vlan'] is defined %}{% if site_vlans[vlan]['voice_vlan'] == true %}
+!Tagging VOICE VLAN for Dual Mode Ports on VLAN {{ site_vlans['VOICE']['vlan_id'] }}
+vlan {{ site_vlans['VOICE']['vlan_id'] }} name {{ site_abbrv }}-VOICE by port
+multicast passive
+loop-detection
+{% for port_groups in all_ports %}{% if vlan == port_groups %}
+{% for i in all_ports[port_groups]['ports'] %}
+{% for mod in all_ports[port_groups]['module']|string if mod|int > 0 %}
+tagged {{ all_ports[port_groups]['name'] }}{{ mod }}/{{ all_ports[port_groups]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ all_ports[port_groups]['card'] }}/{% elif not loop.last %}{{ x }}{% else %}{{ x }}{% endif %}{% endfor %}
+
+{% endfor %}
+{% endfor %}
+
+!Tagging ACCESS VLAN for Dual Mode Ports on VLAN {{ vlan }}
+vlan {{ site_vlans[vlan]['vlan_id'] }} name {{ site_abbrv }}-{{ vlan }} by port
+multicast passive
+loop-detection
+{% for i in all_ports[port_groups]['ports'] %}
+{% for mod in all_ports[port_groups]['module']|string if mod|int > 0 %}
+tagged {{ all_ports[port_groups]['name'] }}{{ mod }}/{{ all_ports[port_groups]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ all_ports[port_groups]['card'] }}/{% elif not loop.last %}{{ x }}{% else %}{{ x }}{% endif %}{% endfor %}
+
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{# END DUAL MODE PORT TAGGING #}
+{# BEGIN TRUNK TAGGING #}
+
+{% for vlan in site_vlans %}
+{% if all_trunks is defined %}{% for trunk in all_trunks %}
+{% for intvlan in all_trunks[trunk]['vlans'] %}{% if vlan == intvlan %}
+!Tagging Trunk Ports for VLAN {{ site_vlans[vlan]['vlan_id'] }}
+vlan {{ site_vlans[vlan]['vlan_id'] }} name {{ site_abbrv }}-{{ vlan }} by port
+multicast passive
+loop-detection
+{% for i in all_trunks[trunk]['ports'] %}
+{% for mod in all_trunks[trunk]['module']|string if mod|int > 0 %}
+tagged {{ all_trunks[trunk]['name'] }} {{ mod }}/{{ all_trunks[trunk]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ all_trunks[trunk]['card'] }}/{% else %}{{ x }}{% endif %}{% endfor %}
+
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+
+{# END TRUNK TAGGING #}
+{# BEGIN TRUNK PORT CONFIGURATION #}
+
+{% if all_trunks is defined %}
+!Configure trunk interfaces
+{% for trunk in all_trunks %}
+{% for mod in all_trunks[trunk]['module']|string if mod|int > 0 %}
+{% for i in all_trunks[trunk]['ports'] %}
+interface {{ all_trunks[trunk]['name'] }}{{ mod }}/{{ all_trunks[trunk]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ all_trunks[trunk]['card'] }}/{% elif not loop.last %}{{ x }}{% else %}{{ x }}
+port-name {{ all_trunks[trunk]['description'] }}
+{% if all_trunks[trunk]['native_vlan'] is defined %}
+{% for vlan in site_vlans %}
+{% if vlan == all_trunks[trunk]['native_vlan'] %}dual-mode {{ site_vlans[vlan]['vlan_id'] }}
+{% endif %}{% endfor %}
+{% endif %}
+{% if all_trunks[trunk]['bpdu_guard'] is defined %}{% if all_trunks[trunk]['bpdu_guard'] == true %}
+stp-bpdu-guard
+{% endif %}{% endif %}
+{% if all_trunks[trunk]['admin_up'] == true %}
+no disable
+{% endif %}
+{% if all_trunks[trunk]['admin_up'] == false %}
+disable
+{% endif %}
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+{% endif %}
+
+{# END TRUNK PORT CONFIGURATION #}
+{# BEGIN ACCESS PORT CONFIGURATION #}
+{% for port_groups in all_ports %}
+{% for mod in all_ports[port_groups]['module']|string if mod|int > 0 %}
+!Configure Access Port for {{ all_ports[port_groups]['description'] }}
+{% for i in all_ports[port_groups]['ports'] %}
+interface {{ all_ports[port_groups]['name'] }}{{ mod }}/{{ all_ports[port_groups]['card'] }}/{% for x in i|string %}{% set delimeter = '-' %}{% if x == delimeter %} to {{ mod }}/{{ all_ports[port_groups]['card'] }}/{% elif not loop.last %}{{ x }}{% else %}{{ x }}{% endif %}{% endfor %}
+
+{% for vlan in site_vlans %}
+{% if port_groups == vlan %}
+{% if site_vlans[vlan]['voice_vlan'] is defined %}{% if site_vlans[vlan]['voice_vlan'] == true %}
+dual-mode {{ site_vlans[vlan]['vlan_id'] }}
+{% endif %}
+{% endif %}
+{% endif %}
+{% endfor %}
+port-name {{ all_ports[port_groups]['description'] }}
+no cdp enable
+spanning-tree 802-1w admin-edge-port
+inline power power-limit 15400
+{% if all_ports[port_groups]['bpdu_guard'] is defined %}
+{% if all_ports[port_groups]['bpdu_guard'] == true %}
+stp-bpdu-guard
+{% endif %}
+{% if all_ports[port_groups]['bpdu_guard'] == false %}
+no stp-bpdu-guard
+{% endif %}
+{% endif %}
+{% if all_ports[port_groups]['admin_up'] == true %}
+no disable
+{% elif all_ports[port_groups]['admin_up'] == false %}
+disable
+{% endif %}
+{% endfor %}
+{% endfor %}
+{% endfor %}
+
+{# END ACCESS PORT CONFIGURATION #}
+{# BEGIN MGMT INTERFACE CREATION #}
+
+{% if mgmt_layer3 == false %}
+!Configure Management VLAN
+vlan {{ site_vlans['MGMT']['vlan_id'] }} name {{ site_abbrv }}-MGMT by port
+multicast passive
+loop-detection
+management-vlan
+default-gateway {{ mgmt_default_gateway }} 1
+int management 1
+ip address {{ mgmt_vlan_ip }} {{ mgmt_vlan_mask }}
+{% else %}
+{% if mgmt_layer3 == true %}
+{% for vlan in site_vlans %}
+{% if site_vlans[vlan]['ve_ip'] is defined %}
+{% if site_vlans[vlan]['ve_mask'] is defined %}
+!Configure routed interface for VLAN {{ site_vlans[vlan]['vlan_id'] }}
+vlan {{ site_vlans[vlan]['vlan_id'] }} name {{ site_abbrv }}-{{ vlan }} by port
+router-interface ve {{ site_vlans[vlan]['vlan_id'] }}
+exit
+interface ve {{ site_vlans[vlan]['vlan_id'] }}
+ip address {{ site_vlans[vlan]['ve_ip'] }} {{ site_vlans[vlan]['ve_mask'] }}
+{% if site_vlans[vlan]['ve_helper1'] is defined %}
+ip helper-address 1 {{ site_vlans[vlan]['ve_helper1'] }}
+{% endif %}
+{% if site_vlans[vlan]['ve_helper2'] is defined %}
+ip helper-address 2 {{ site_vlans[vlan]['ve_helper2'] }}
+{% endif %}
+exit
+{% endif %}
+{% endif %}
+{% endfor %}
+ip route 0.0.0.0/0 {{ mgmt_default_gateway }} 1
+{% endif %}
+{% endif %}
+
+{# END MGMT INTERFACE CREATION #}

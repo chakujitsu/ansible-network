@@ -1,0 +1,13 @@
+---
+##
+## Template for Fortigate Firewalls
+##
+
+# Device Hostnaname Examples (dots are illegal characters, use "-" as a seperator)
+### devicename-site
+### devicename-bldg-site
+hostname: "fw-lab"
+
+# Model Options:
+### FGT-140E
+model: "FGT-140E"

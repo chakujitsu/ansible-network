@@ -1,4 +1,8 @@
 ---
+##
+## Template for Top-of-Rack switches
+##
+
 # Device Hostnaname Examples
 ### devicename.site
 ### devicename.bldg.site
@@ -23,40 +27,40 @@ model: "model"
 
 #############BEGIN ACCESS PORTS############
 all_ports:
-  VLAN1:
+  MGMT:
     name: Ethernet
     module: 1
     card: 1
     ports:
-      - 1-44
+      - 1-48
     description: "{{ user_access_port_description }}"
     admin_up: true
 
-#############END USER PORTS###############
-############BEGIN TRUNK PORTS#############
+#############END USER PORTS############
+############BEGIN TRUNK PORTS###########
 
-all_trunks:
-  TRUNK-IDENTIFIER:
-    name: Ethernet
-    module: 1
-    card: 1
-    ports:
-      - 45-46
-    description: "description"
-    snooping_trust: true
-    uplink: true
-    native_vlan: VLAN2
-    admin_up: true
-    vlans:
-      - VLAN1
-      - VLAN2
+#all_trunks:
+#  RUCKUS-AP:
+#    name: Ethernet
+#    module: 1
+#    card: 1
+#    ports:
+#      - 1-6
+#    description: "TO RUCKUS AP"
+#    snooping_trust: true
+#    uplink: true
+#    native_vlan: MGMT
+#    admin_up: true
+#    vlans:
+#      - USERS
+#      - GUEST
 
-############END TRUNK PORTS###############
+############END TRUNK PORTS#############
 ###########BEGIN PORT-CHANNELS############
 
 port_channels:
   1:
-    lag_name: "LAG-NAME"
+    lag_name: ""
     name: Ethernet
     module: 1
     card: 2
@@ -68,7 +72,7 @@ port_channels:
     uplink: true
     admin_up: true
     vlans:
-      - VLAN1
-      - VLAN2
+      - MGMT
 
-###########END PORT-CHANNELS#############
+###########END PORT-CHANNELS############
+

@@ -6,13 +6,14 @@ hostname: "devicename.site"
 
 # Zero Touch Provisioning MAC - used for ICX only
 ztp_mac: "ffff.ffff.ffff"
-ztp_prefix: "ICX7150-48ZP"
+ztp_prefix: "ICX7750-48F"
 
 # Management SVI ip address
+# Configure VE interfaces under site group_var configuration - used for ICX only
 mgmt_vlan_ip: "10.1.1.1"
 mgmt_vlan_mask: "255.255.255.0"
 mgmt_default_gateway: "10.1.1.254"
-mgmt_layer3: false
+mgmt_layer3: true
 
 # Model Options:
 ### 2960-x
