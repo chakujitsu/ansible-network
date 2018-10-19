@@ -1,5 +1,11 @@
 This ansible-network repo is a work in progress and currently used to manage baseline configurations and access port configurations.
 
+#### Custom Modules
+
+## ICX
+Used to connect to Ruckus ICX fastiron switches. See icx/README.md for more information.
+
+
 ##### Planned Implementations:
 
 1. Dynamic Interface Descriptions for switch trunk uplinks, based on CDP information.
@@ -32,7 +38,7 @@ The current playbook that manage basline paramaters are below, with most variabl
 #### IOS-Interfaces Playbook
 
 
-This playbook generates interface configurations for access ports, along with configuring VLANs that should be used on the switch. **Note:** This role is a work in progress, port channel configuration is pending. Trunk ports and access portsworking as intended. 
+This playbook generates interface configurations for access ports, along with configuring VLANs that should be used on the switch. **Note:** This role is a work in progress, port channel configuration is pending. Trunk ports and access portsworking as intended.
 
 1. The "site" group_var file (in this case "lab"),  is where all the site VLAN variables are declared by name. This playbook enforces vlans based on these named variables. These named variables are then used to generate interface configurations (see below).
 
@@ -42,4 +48,4 @@ See the test-3750-04-02.lab.internal host_vars file for an example on how to dec
 
 #### Network-Baseline-Config
 
-This playbook generates a configuration for dropping on a device during an initial deployment. See the role readme.md for more info. 
+This playbook generates a configuration for dropping on a device during an initial deployment. See the role readme.md for more info.
