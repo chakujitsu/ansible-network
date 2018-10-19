@@ -15,15 +15,15 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: fastiron_command
-version_added: "2.5"
-author: "Paul Baker (@paulquack)"
-short_description: Run arbitrary commands on Extreme fastiron devices
+version_added: "2.7"
+author: "Trent Nielsen (@tnielsen2)"
+short_description: Run arbitrary commands on Ruckus ICX Fastiron devices
 description:
-  - Sends arbitrary commands to a Extreme fastiron node and returns the
+  - Sends arbitrary commands to a Ruckus Fastiron node and returns the
     results read from the device. This module includes a I(wait_for)
     argument that will cause the module to wait for a specific condition
     before returning or timing out if the condition is not met.
-extends_documentation_fragment: fastiron
+extends_documentation_fragment: Fastiron
 options:
   commands:
     description:
@@ -72,8 +72,8 @@ EXAMPLES = """
 
 - fastiron_command:
     commands:
-      - show interfaces brief wide
-      - show mpls vll
+      - show vlan
+      - show interface description
 """
 
 RETURN = """

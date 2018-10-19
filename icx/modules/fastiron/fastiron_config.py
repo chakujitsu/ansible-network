@@ -15,15 +15,15 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 DOCUMENTATION = """
 ---
 module: fastiron_config
-version_added: "2.5"
-author: "Paul Baker (@paulquack)"
-short_description: Manage configuration sections on Extreme fastiron devices
+version_added: "2.7"
+author: "Trent Nielsen (@tnielsen2)"
+short_description: Manage configuration sections on Ruckus Fastiron devices
 description:
-  - Extreme fastiron configurations use a simple block indent file syntax
+  - Ruckus Fastiron configurations use a simple block indent file syntax
     for segmenting configuration into sections.  This module provides
-    an implementation for working with fastiron configuration sections in
+    an implementation for working with Fastiron configuration sections in
     a deterministic way.
-extends_documentation_fragment: fastiron
+extends_documentation_fragment: Fastiron
 options:
   lines:
     description:
